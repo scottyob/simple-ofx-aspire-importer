@@ -24,7 +24,7 @@ def _to_account_name(account_map: Dict[str, str], account_id: str) -> str:
     default="data/processed.json",
 )
 @click.option(
-    "--update-processed-file",
+    "-w", "--update-processed-file",
     is_flag=True,
     help="Flag to update processed file.",
 )
