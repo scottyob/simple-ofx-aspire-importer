@@ -1,0 +1,14 @@
+click==8.1.7
+colorama==0.4.6
+dataclasses-json==0.6.4
+importlib-metadata==5.2.0
+json-spec==0.11.0
+jsoncomment==0.4.2
+marshmallow==3.21.1
+mypy-extensions==1.0.0
+ofxtools==0.9.5
+packaging==24.0
+pytz==2024.1
+typing-inspect==0.9.0
+typing_extensions==4.10.0
+zipp==3.18.1
