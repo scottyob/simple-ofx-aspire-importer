@@ -17,14 +17,11 @@ def to_transaction(record: ET.Element):
     transaction = Transaction()
     for e in record:
         if e.tag == "TRNTYPE":
-            if e.text == "PAYMENT":
-                transaction.transaction_type = "CREDIT"
-            else:
-                transaction.transaction_type = e.text
+            transaction.transaction_type = e.text
         elif e.tag == "DTPOSTED":
             transaction.date = _format_date(e.text)
         elif e.tag == "TRNAMT":
-            transaction.amount = abs(Decimal(e.text))
+            transaction.amount = Decimal(e.text)
         elif e.tag == "FITID":
             transaction.id = e.text
         elif e.tag == "NAME":
@@ -33,7 +30,11 @@ def to_transaction(record: ET.Element):
             if e.text == "none":
                 transaction.memo = None
             else:
-                transaction.memo = e.text
+                transaction.memo = e.text    
+
+    if transaction.amount > 0:
+        transaction.transaction_type = "CREDIT"
+    transaction.amount = abs(transaction.amount)
 
     return transaction
 

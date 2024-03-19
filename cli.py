@@ -17,7 +17,7 @@ def _to_account_name(account_map: Dict[str, str], account_id: str) -> str:
 
 
 @click.command()
-@click.argument("filename")
+@click.argument("filenames", nargs=-1)
 @click.option(
     "--processed-filename",
     help="Specify the processed filename.",
@@ -45,7 +45,7 @@ def _to_account_name(account_map: Dict[str, str], account_id: str) -> str:
     default=False
 )
 def process(
-    filename: str,
+    filenames: str,
     processed_filename,
     update_processed_file,
     categories_filename,
@@ -65,12 +65,20 @@ def process(
     with open(accounts_filename) as f:
         accounts_map: Dict[str, str] = json.load(f)
 
-    # Build a list of transactions based on the file type
+    # Build a list of transactions
     transactions = []
-    account_name = "UNKNOWN"
-    if filename.endswith(".ofx"):
-        transactions, acct = ofx.parse_file(filename)
+    for filename in filenames:
+        account_name = "UNKNOWN"
+        file_transactions, acct = ofx.parse_file(filename)
         account_name = _to_account_name(accounts_map, acct) or acct
+    
+        # Set the categories
+        for t in file_transactions:
+            t.set_category(category_map)
+            t.account_name = account_name
+
+        # Update the complete transactions list        
+        transactions.extend(file_transactions)
 
     # Update the log of items that have been processed
     if processed_filename:
@@ -81,11 +89,7 @@ def process(
 
     # Strip out any recods from the file that have already been processed
     transactions = [t for t in transactions if t.id not in processed_log]
-
-    # Set the categories
-    for t in transactions:
-        t.set_category(category_map)
-        t.account_name = account_name
+    transactions = sorted(transactions, key=lambda x: x.date)
 
     # Process every new transaction
     for t in transactions:
