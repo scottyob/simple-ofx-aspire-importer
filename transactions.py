@@ -62,7 +62,8 @@ class TransactionLog:
 
     date: str
     id: str
+    account: Optional[str] = None
 
     @classmethod
     def from_transaction(cls, t: Transaction) -> Transaction:
-        return TransactionLog(t.date, t.id)
+        return TransactionLog(t.date, t.id, t.account_name)

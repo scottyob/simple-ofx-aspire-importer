@@ -7,10 +7,11 @@ import xml.etree.ElementTree as ET
 from decimal import Decimal
 from datetime import datetime
 import pytz
-from typing import List
+from typing import List, Tuple
 from ofxtools.Parser import OFXTree
 
 from transactions import Transaction
+AccountName = str
 
 
 def to_transaction(record: ET.Element):
@@ -69,20 +70,11 @@ def _format_date(original_string: str) -> str:
     return dt_object_gmt_minus_7.strftime("%Y/%m/%d")
 
 
-def parse_file(filename: str) -> List[Transaction]:
+def parse_file(filename: str) -> Tuple[List[Transaction], AccountName]:
     # Read the contents of the file into one big string
     parser = OFXTree()
     parser.parse(filename)
 
-
-    # with open(filename, "r") as f:
-    #     contents = f.read()
-
-    # index = contents.find("<OFX>")
-    # xml = contents[index:]
-    # import pdb; pdb.set_trace()
-
-    #tree = ET.fromstring(xml)
     tree = parser.getroot()
     transactions = tree.findall(".//STMTTRN")
     account_name = tree.find(".//ACCTID").text

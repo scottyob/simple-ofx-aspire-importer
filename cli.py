@@ -24,7 +24,8 @@ def _to_account_name(account_map: Dict[str, str], account_id: str) -> str:
     default="data/processed.json",
 )
 @click.option(
-    "-w", "--update-processed-file",
+    "-w",
+    "--update-processed-file",
     is_flag=True,
     help="Flag to update processed file.",
 )
@@ -38,12 +39,7 @@ def _to_account_name(account_map: Dict[str, str], account_id: str) -> str:
     help="The JSON file containing a map of account ID suffixes to their Aspire account name",
     default="data/accounts.json",
 )
-@click.option(
-    "--debug",
-    help="Debug mode",
-    is_flag=True,
-    default=False
-)
+@click.option("--debug", help="Debug mode", is_flag=True, default=False)
 def process(
     filenames: str,
     processed_filename,
@@ -57,7 +53,7 @@ def process(
     """
 
     # Keep a log of the transactions that have been processed
-    processed_log = {}
+    processed_log: Dict[str, TransactionLog] = {}
     category_map = load_category_map(categories_filename)
 
     # Load in the accounts map
@@ -71,13 +67,13 @@ def process(
         account_name = "UNKNOWN"
         file_transactions, acct = ofx.parse_file(filename)
         account_name = _to_account_name(accounts_map, acct) or acct
-    
+
         # Set the categories
         for t in file_transactions:
             t.set_category(category_map)
             t.account_name = account_name
 
-        # Update the complete transactions list        
+        # Update the complete transactions list
         transactions.extend(file_transactions)
 
     # Update the log of items that have been processed
@@ -88,7 +84,15 @@ def process(
                 processed_log[log_entry.id] = log_entry
 
     # Strip out any recods from the file that have already been processed
-    transactions = [t for t in transactions if t.id not in processed_log]
+    transactions = [
+        t
+        for t in transactions
+        if t.id not in processed_log
+        or (
+            processed_log[t.id].account
+            and (processed_log[t.id].account != t.account_name)
+        )
+    ]
     transactions = sorted(transactions, key=lambda x: x.date)
 
     # Process every new transaction
